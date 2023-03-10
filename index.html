@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+
+</head>
+<body style="background: linear-gradient(to bottom, #8001ff, #caf94e);">
+    <div id="root" ></div>
+    <script type="text/babel">
+
+    const Board = ( ) => {
+
+        const PrincipalCards = 
+        [{id: 1, name: './img/c1.jpg', flipped: false},
+            {id: 2, name: './img/c2.jpg', flipped: false},
+            {id: 3, name: './img/c3.jpg', flipped: false},
+            {id: 4, name: './img/c4.jpg', flipped: false},
+            {id: 5, name: './img/c5.jpg', flipped: false},
+            {id: 6, name: './img/c6.jpg', flipped: false},
+            {id: 7, name: './img/c7.jpg', flipped: false},
+            {id: 8, name: './img/c8.jpg', flipped: false}]
+
+        const Score = ({score}) => (
+        <div style={{ 
+        color: 'black',
+        fontFamily: 'monospace',
+        fontSize: '24px',
+        margin: '10px',
+        fontWeight: 'bold' }}>
+            Movimientos: {score} 
+        </div>)
+
+        const [score, setScore] = React.useState(0)
+        
+
+
+        const [cards, setCards] = React.useState ([
+            //duplicate the cards with another id
+            ...PrincipalCards,
+            ...PrincipalCards.map((card) => ({...card, id: card.id + 8}))
+        ].map(card => ({...card, paired: false}))) // seteamos el estado de las cartas, y agregamos el atributo paired
+
+        React.useEffect ( ()=> { // solamente se hace shuffle cuando se renderiza por primera vez
+            setCards((prev)=> {
+                const copia = [...prev]
+                copia.sort(() => Math.random() - 0.5)
+                return copia
+            })
+        },[])
+
+        const firstcard = React.useRef(null) // se usa para guardar el valor de la primera carta
+
+        const unFlipped = (c1, c2) => { //hacemos unflip a las cartas que no coinciden
+            setCards ((prev)=> { // seteamos el estado de las cartas
+                const newCards = [...prev] // hacemos una copia de las cartas anteriores
+                newCards.forEach((i)=> { // recorremos las cartas
+                    if (i.id === c1 || i.id === c2 ){ 
+                        i.flipped = false  
+                    }
+                })
+                setScore((prev)=> prev + 1) // aumentamos el puntaje
+                
+                return newCards
+            })
+            console.log(c1)
+            console.log(c2)
+        }
+
+
+        const handleClick = (id) => { // mandamos el id de la carta que se dio click
+           setCards( (prev)=> {  //seteamos el estado de las cartas, pasando las cartas anteriores
+            const copy = [...prev]  // hacemos una copia de las cartas anteriores
+            const card = copy.find( (c)=>  (c.id === id)) // buscamos la carta que se dio click
+            if (card.paired) { // si la carta ya se emparejó, salir del controlador de eventos
+                return copy
+            }
+            card.flipped = (!card.flipped)  // cambiamos el estado de la carta que se dio click
+            if (firstcard.current === null) { // si no hay ninguna carta seleccionada
+                firstcard.current  = card  // guardamos la carta que se dio click y es nuestra primera carta
+            }else { // si ya hay una carta seleccionada
+                if(card.name === firstcard.current.name && card.id !== firstcard.current.id){  // si las cartas son iguales
+                    card.paired = true
+                    firstcard.current.paired = true // marcamos las cartas como emparejadas
+                    setScore((prev)=> prev + 1) // aumentamos el puntaje
+                    
+                    console.log("iguales")
+                }else{ // si las cartas no son iguales
+                    console.log("no son iguales")
+                    const copycurrent = firstcard.current.id // guardamos el id de la primera carta
+                    setTimeout(()=> {
+                        unFlipped(copycurrent, card.id) // desvolteamos las cartas
+                    }, 3000)
+                }
+                firstcard.current = null
+            }
+            return copy 
+           })
+            
+        }
+    
+        return(
+            <div style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+            }}> 
+            <div style={{
+                background: 'none',
+                width: '600px',
+                height: '600px',
+                display: 'grid',
+                gap : '10px',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateRows: 'repeat(4, 1fr)', 
+                
+            }}> 
+                {cards.map((card) => (
+                    <Card key={card.id} card={card} onClick={handleClick} />
+                ))}
+            </div>
+            <Score score={score} />
+            </div>
+        ) 
+    }
+
+    const Card = ({ card, onClick}) => {
+
+        return (
+            <div
+                style={{
+                backgroundImage: card.flipped ? `url(${card.name})` :  'url(./img/portada.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                width: '100%',
+                height: '100%',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                transition: 'transform 0.8s',
+                transform: card.flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                }}
+                onClick={()=> {
+                    onClick(card.id) 
+                    console.log(card.id)
+                } }
+            />
+            
+        )
+    }
+
+    const Game = () => {
+
+        return (
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh',
+                flexDirection: 'column',
+
+            }}>
+                <Board />
+            </div>
+        )
+    }
+
+        const root = ReactDOM.createRoot(document.getElementById('root')); // createRoot(container!) if you use TypeScript
+        root.render(<Game />)
+    </script>
+</body>
+</html>
