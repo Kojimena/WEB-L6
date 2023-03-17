@@ -6,7 +6,9 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&family=Open+Sans:wght@300&family=Tilt+Warp&display=swap" rel="stylesheet">
 </head>
 <body style="background: linear-gradient(to bottom, #8001ff, #caf94e);">
     <div id="root" ></div>
@@ -27,7 +29,7 @@
         const Score = ({score}) => (
         <div style={{ 
         color: 'black',
-        fontFamily: 'monospace',
+        fontFamily: 'Tilt Warp, sans-serif, monospace',
         fontSize: '24px',
         margin: '10px',
         fontWeight: 'bold' }}>
@@ -35,6 +37,18 @@
         </div>)
 
         const [score, setScore] = React.useState(0)
+
+        const Win = ({win}) => (
+        <div style={{
+        color: 'black',
+        fontFamily: 'Tilt Warp, sans-serif, monospace',
+        fontSize: '32px',
+        margin: '10px',
+        fontWeight: 'bold' }}>
+            {win}
+        </div>)
+
+        const [win, setWin] = React.useState(false)
         
 
 
@@ -86,14 +100,17 @@
                     card.paired = true
                     firstcard.current.paired = true // marcamos las cartas como emparejadas
                     setScore((prev)=> prev + 1) // aumentamos el puntaje
-                    
+                    const win = copy.every((c)=> c.paired) // verificamos si todas las cartas están emparejadas
+                    if (win) { // si todas las cartas están emparejadas
+                        setWin(true) // seteamos el estado de win en true
+                    }
                     console.log("iguales")
                 }else{ // si las cartas no son iguales
                     console.log("no son iguales")
                     const copycurrent = firstcard.current.id // guardamos el id de la primera carta
                     setTimeout(()=> {
                         unFlipped(copycurrent, card.id) // desvolteamos las cartas
-                    }, 3000)
+                    }, 1000)
                 }
                 firstcard.current = null
             }
@@ -109,6 +126,7 @@
                 display: 'flex',
                 flexDirection: 'column',
             }}> 
+            {true && <Win win="Ganaste!" />}
             <div style={{
                 background: 'none',
                 width: '600px',
